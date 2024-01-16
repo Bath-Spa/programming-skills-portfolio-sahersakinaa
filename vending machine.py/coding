@@ -1,0 +1,118 @@
+import re
+
+class VendingMachine:
+    def __init__(self):
+        self.products = {
+             9010: {"item_id": 9010, "item_name": "chai", "item_cost": 1.00},
+            2200: {"item_id": 2200, "item_name": "caramel", "item_cost": 2.25},
+            7821: {"item_id": 7821, "item_name": "flavored water", "item_cost": 2.00},
+            1498: {"item_id": 1498, "item_name": "mango juice", "item_cost": 1.50},
+            3195: {"item_id": 3195, "item_name": "banadges", "item_cost": 0.50},
+            6895: {"item_id": 6895, "item_name": "lotus", "item_cost": 3.00},
+            2004: {"item_id": 2004, "item_name": "cheestos", "item_cost": 2.75},
+            1976: {"item_id": 1976, "item_name": "milk", "item_cost": 1.75},
+            8686: {"item_id": 8686, "item_name": "sandwich", "item_cost": 4.00},
+            1139: {"item_id": 1139, "item_name": "lollipop", "item_cost": 1.00},
+            # Add more items as needed
+        }
+        self.selected_items = []
+        self.total_cost = 0.0
+        self.inserted_money = 0.0
+        self.user_balance = 10.0  # user can use DHS currency
+
+    def display_products(self):
+        print("\nProduct Catalog:")
+        print("ID\tName\tCost")
+        for product_id, product_info in self.products.items():
+            print(f"{product_info['item_id']}\t{product_info['item_name']}\t{product_info['item_cost']} DHS")
+
+    def select_items(self):
+        while True:
+            try:
+                selected_id = int(input("\nEnter the ID of the product you want to add (00 to finish): "))
+                if selected_id == 00:
+                    break
+                elif selected_id not in self.products:
+                    print("Invalid product ID. Please choose a valid ID.")
+                else:
+                    self.selected_items.append(selected_id)
+                    self.total_cost += self.products[selected_id]["item_cost"]
+            except ValueError:
+                print("Invalid input. Please enter a valid product ID.")
+
+    def insert_money(self):
+        try:
+            self.inserted_money = float(input(f"\nInsert money (Current balance: {self.user_balance} DHS): "))
+        except ValueError:
+            print("Invalid input. Please enter a valid amount.")
+
+    def process_payment(self):
+        print("\nPayment Methods:")
+        print("A. Cash")
+        print("B. Credit Card")
+        payment_method_choice = input("Choose payment method (A for cash, B for credit card): ")
+
+        if payment_method_choice == "A":
+            self.process_cash_payment()
+        elif payment_method_choice == "B":
+            self.process_credit_payment()
+        else:
+            print("Invalid payment method. Please choose A for cash or B for credit card.")
+
+    def process_cash_payment(self):
+        self.insert_money()
+        if self.inserted_money >= self.total_cost:
+            change = self.inserted_money - self.total_cost
+            self.user_balance += self.total_cost  # Deduct the cost from user balance
+            print(f"Payment successful. Product and change ({change} DHS) will be Delivered shortly!")
+        else:
+            print(f"Insufficient MONEY. Returning {self.inserted_money} DHS.")
+            self.return_money()
+
+    def process_credit_payment(self):
+        while True:
+            credit_card_number = input("Enter credit card number: ")
+            # Validate credit card number using regex
+            if re.match(r'^\d{16}$', credit_card_number):
+                if self.user_balance >= self.total_cost:
+                    self.user_balance -= self.total_cost  # Deduct the money from user balance
+                    print(f"Payment successful. {self.total_cost} DHS deducted from your card. Thanks for using the vending machine!")
+                else:
+                    print("Insufficient funds on your card. Please use another payment method.")
+                break
+            else:
+                print("Invalid credit card number. Please enter a valid 16-digit number.")
+
+    def return_money(self):
+        print(f"Returning {self.inserted_money} DHS. Remaining balance: {self.user_balance} DHS.")
+        self.inserted_money = 0.0
+
+    def display_balance(self):
+        print(f"Current balance: {self.user_balance} DHS")
+
+    def generate_receipt(self):
+        print("\n----- Receipt -----")
+        print("ID\tName\tCost")
+        for selected_id in self.selected_items:
+            product_info = self.products[selected_id]
+            print(f"{product_info['item_id']}\t{product_info['item_name']}\t{product_info['item_cost']} DHS")
+
+        print("\n------------------------")
+        print(f"Total Cost:      {self.total_cost} DHS")
+
+    def run_vending_machine(self):
+        print("Welcome to the Vending Machine\n")
+        self.display_products()
+        self.select_items()
+        if not self.selected_items:
+            print("No items selected. Exiting.")
+            return
+
+        print(f"\nTotal cost of selected items: {self.total_cost} DHS")
+        self.process_payment()
+        self.generate_receipt()
+        self.display_balance()
+
+# Run the vending machine
+vending_machine = VendingMachine()
+vending_machine.run_vending_machine()
